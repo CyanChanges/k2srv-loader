@@ -1,0 +1,15 @@
+name: 'k2345-Security'
+
+messages:
+  protectedUnder: 'You are being protected by {0}'
+  serviceActiveNotice: 'k2345 services are running'
+
+unsupported:
+  message: 'Your browser is not incompatible with {0}{1}'
+  solution: 'DO NOT use '
+
+switch2chrome:
+  title: 'Switch to Chrome?'
+  message: 'Koishi recommends using Google Chrome when using Koishi WebUI'
+  yes: 'Yes'
+  no: 'No thanks'

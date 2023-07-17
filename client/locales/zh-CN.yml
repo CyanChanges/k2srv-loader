@@ -1,0 +1,15 @@
+name: 'k2345 安全中心'
+
+messages:
+  protectedUnder: '您已受到 {0} 的保护'
+  serviceActiveNotice: 'k2345 服务已启用'
+
+unsupported:
+  message: '您的浏览器与 {0}{1} 不兼容'
+  solution: 'Please do not use browsers that are often grayscale, unstable, new features, and too much content to solve this problem. It is recommended to use Google Chrome (and some Chromium series)'
+
+switch2chrome:
+  title: '改用 Chrome'
+  message: '您需要改用 Chrome，才能使用大多数 Koishi 功能。'
+  yes: 是
+  no: '不了，谢谢'
