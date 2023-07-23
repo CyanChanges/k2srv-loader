@@ -1,4 +1,6 @@
-import { Context } from "koishi";
+import { Context, Logger } from "koishi";
+import type { K2Security } from "../services/k2s";
+import type { K2Defense } from "../services/k2d";
 
 export enum PerformAction {
   Uninstall = 'uninstall',
@@ -29,6 +31,8 @@ export enum ProtectionType {
   passive
 }
 
+export const aLogger = new Logger('k2d')
+
 export const aInsecure: PluginMatcher[] = [{
   name: 'systools',
   package: 'koishi-plugin-systools',
@@ -47,3 +51,12 @@ export const aInsecure: PluginMatcher[] = [{
   package: 'koishi-plugin-boom2',
   match: ['boom2']
 }]
+
+export interface UpdateOptions {
+  useLatest: boolean
+  autoUpdate: boolean
+}
+
+export type K2ReloadOptions = { [x: string]: (Context | K2Security | K2Defense) } & {
+  ctx: Context
+}

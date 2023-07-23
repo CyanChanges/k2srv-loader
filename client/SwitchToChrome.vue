@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from "vue-i18n";
-import zhCN from "./locales/zh-CN.yml";
-import enUS from "./locales/en-US.yml";
+import { zhCN, enUS } from "./locales";
 
 const { t, setLocaleMessage } = useI18n({
   messages: {
@@ -22,7 +21,8 @@ if (import.meta.hot) {
 
 const yesElement = ref<HTMLButtonElement>()
 
-const placeholder = ()=>{}
+const placeholder = () => {
+}
 
 const onNoThanks = () => {
   setTimeout(() => {

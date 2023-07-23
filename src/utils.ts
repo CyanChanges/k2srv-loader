@@ -1,4 +1,6 @@
 import { camelCase as underScore2CamelCase } from "cosmokit";
+import { K2Origin } from "./constants";
+import { Promisify } from "koishi";
 
 export type * from 'cosmokit'
 export type Parameters<F> = F extends (...args: infer P) => any ? P : never
@@ -13,7 +15,6 @@ export function camelCase(...args: string[]) {
 export function isPromise<T>(v: any | Promise<T>): v is Promise<T> {
   return v && v.constructor === Promise
 }
-
 
 export function removePrefix(str: string, prefix2remove: string) {
   if (str.startsWith(prefix2remove)) {
@@ -35,4 +36,12 @@ export function rtName(packageName: string) {
   return packageName.replace(/(koishi-|^@koishijs\/)plugin-/, '')
 }
 
+export function sourceOf<T extends (...args: any) => any>(func: T, bindThis?: any): T | undefined {
+  if (typeof func === "undefined") return func
+  const origin = func[K2Origin] ?? func
+  return bindThis ? origin.bind(bindThis) : origin
+}
 
+export async function awaitIfNonNull<T extends (...args)=>Promise<any>>(func: T, ...args: Parameters<T>): Promisify<ReturnType<T> | null> {
+  return func ? null : await func(...args)
+}

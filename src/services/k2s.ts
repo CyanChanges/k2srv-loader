@@ -7,6 +7,7 @@ import { K2Service } from "../constants";
 import { HookPass, K2345s } from "../impl/k2-security";
 import { K2Defense } from './k2d'
 import "../impl/k2-early-keep"
+import { Config } from '../shared'
 
 declare module '@koishijs/loader' {
   interface Loader {
@@ -18,20 +19,19 @@ Loader.prototype.name = 'loader'
 export const name = 'k2s'
 
 declare module 'koishi' {
-  interface Context {
-    k2s: K2345Security
+  export interface Context {
+    k2s: K2Security
   }
 }
 
-export class K2345Security extends Service {
+export class K2Security<T extends Config = Config> extends Service {
   static feat: PublicFeat = new PublicFeat(K2345s.config)
-  static using = ['k2d']
-  protected cls = K2345Security
-  private readonly ContextPlugin: typeof Context.prototype.plugin
+  static immediate = true
+  protected cls = K2Security<T>
   static PassFlag = HookPass
   PassFlag = HookPass
 
-  constructor(protected ctx: Context, config: K2345Security.Config) {
+  constructor(protected ctx: Context, config: T) {
     super(ctx, name, true)
     ctx.root[K2Service] = true
     ctx.root.mapping[name] = K2Service
@@ -39,12 +39,11 @@ export class K2345Security extends Service {
     this[Context.expose] = name
 
     K2345s.config.context = ctx
-    K2345s.config.feats.ctx = ctx
 
     K2345d.ctxCheckPerform(this.caller)
 
-    if (!ctx.registry.has(K2Defense))
-      ctx.plugin(K2Defense, config)
+    if (!(ctx.k2d || ctx.registry.has(K2Defense)))
+      ctx.registry.plugin(K2Defense, config)
   }
 
   async start() {
@@ -56,13 +55,12 @@ export class K2345Security extends Service {
 
     K2345d.ctxCheck(this.caller)
 
-    K2345d.run(this.ctx)
+    K2345d.runOnce(this.ctx)
+  }
 
-    // this.ctx.using(['console'], (ctx) => {
-    //   ctx.console.addEntry({
-    //     /* ... */
-    //   })
-    // })
+  ensureEnvironment() {
+    K2345d.ctxCheckPerform(this.caller, true)
+    K2345d.runOnce(this.ctx)
   }
 
   protected protectCaller() {
@@ -78,14 +76,14 @@ export class K2345Security extends Service {
 
         caller.on('dispose', () => {
           caller.runtime.restart()
-          K2345s.denied('unloadProtect', "unload", "已为您阻止意外操作")
+          K2345s.lolDenied('unloadProtect', "unload", "已为您阻止意外操作")
         })
 
         const deleter = caller.registry.delete
         caller.registry.delete = function _wrapper(plugin) {
           if (plugin === caller.runtime.plugin) {
             caller.logger('app').error('unable to unload %c due to access denied', caller.runtime.name)
-            K2345s.denied('unloadProtect', "unload", "已为您阻止意外操作")
+            K2345s.lolDenied('unloadProtect', "unload", "已为您阻止意外操作")
             return false // ur not able to delete it !!!!!
           }
           return deleter.call(this, plugin)
@@ -96,25 +94,8 @@ export class K2345Security extends Service {
 
   protectMe = this.protectCaller
 
-  checkFile = K2345s.checkFile
-  hWrapper = K2345s.hookWrapper
-  hWrapperAsync = K2345s.hookWrapperAsync
-  dRemoteKill: typeof K2345d.dRemoteKill = K2345d.dRemoteKill.bind(K2345d)
-  kIHookMethod = K2345s.k2EZIHook
-  kIHookMethodAsync = K2345s.k2EZIHookAsync
-  hook = K2345s.hook
-  hookAsync = K2345s.hookAsync
-}
-
-namespace K2345Security {
-  export interface Config {
-    allowOperate: boolean,
-    allowSelfDefense: boolean,
-    allowAutoUpdate: boolean,
-    allowEarlySelfDefense: true,
-    loaderIsolation: true
-  }
+  filenameCheck = K2345s.filenameCheck
 }
 
 
-Context.service(name, K2345Security)
+Context.service(name, K2Security)

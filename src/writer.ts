@@ -1,7 +1,6 @@
 import { Loader } from "@koishijs/loader";
 import { Context } from "koishi";
-import { K2Origin } from "./constants";
-import { removePrefix } from "./utils";
+import { removePrefix, sourceOf } from "./utils";
 
 
 function insertKey(object: {}, temp: {}, rest: string[]) {
@@ -37,11 +36,11 @@ export class K2ConfigWriter {
     let [parent, oldKey] = this.resolve(path)
     oldKey = removePrefix(oldKey, '~')
     if (newKey) {
-      (<typeof this.loader.unloadPlugin>(this.loader.unloadPlugin[K2Origin] ?? this.loader.unloadPlugin)).call(this.loader, parent.ctx, oldKey)
+      sourceOf(this.loader.unloadPlugin, this.loader)(parent.ctx, oldKey)
     }
-    await (<typeof this.loader.reloadPlugin>(this.loader.reloadPlugin[K2Origin] ?? this.loader.reloadPlugin)).call(this.loader, parent.ctx, newKey || oldKey, config)
+    await sourceOf(this.loader.reloadPlugin, this.loader)(parent.ctx, newKey || oldKey, config)
     rename(parent.config, oldKey, newKey || oldKey, config)
-    await (<typeof this.loader.writeConfig>(this.loader.writeConfig[K2Origin] ?? this.loader.writeConfig)).call(this.loader)
+    await sourceOf(this.loader.writeConfig, this.loader)()
   }
 
   getGroup(plugins: any, ctx: Context) {
@@ -83,7 +82,7 @@ export class K2ConfigWriter {
     const [parent, oldKey] = this.resolve(path)
     this.loader.unloadPlugin(parent.ctx, oldKey)
     rename(parent.config, oldKey, '~' + (newKey || oldKey), config)
-    await (<typeof this.loader.writeConfig>(this.loader.writeConfig[K2Origin] ?? this.loader.writeConfig)).call(this.loader)
+    await sourceOf(this.loader.writeConfig, this.loader)()
   }
 
   async remove(path: string) {
@@ -91,6 +90,6 @@ export class K2ConfigWriter {
     this.loader.unloadPlugin(parent.ctx, key)
     delete parent.config[key]
     delete parent.config['~' + key]
-    await (<typeof this.loader.writeConfig>(this.loader.writeConfig[K2Origin] ?? this.loader.writeConfig)).call(this.loader)
+    await sourceOf(this.loader.writeConfig, this.loader)()
   }
 }

@@ -6,7 +6,9 @@ import { receive } from "@koishijs/client";
 import { ElTimeline, ElTimelineItem, ElCard, ElScrollbar } from 'element-plus'
 
 import { useI18n } from "vue-i18n";
+// @ts-ignore
 import zhCN from "./locales/zh-CN.yml";
+// @ts-ignore
 import enUS from "./locales/en-US.yml";
 
 const { t, setLocaleMessage } = useI18n({

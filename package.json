@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-k2s",
   "description": "安装前请先阅读并同意 https://k.ilharp.cc/3389/3 否则造成任何后果与本插件无关",
-  "version": "0.0.5",
+  "version": "0.2.1",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -16,9 +16,10 @@
   "homepage": "https://github.com/CyanChanges/k2srv-loader",
   "koishi": {
     "description": {
-      "zh": "提供 k2s 相关安全服务 k.ilharp.cc/3389/3",
-      "en": "Provides k2s and related security services k.ilharp.cc/3389/3"
+      "zh": "提供 k2s 相关服务 k.ilharp.cc/3389/3",
+      "en": "Provides k2s and related services k.ilharp.cc/3389/3"
     },
+    "browser": true,
     "preview": true,
     "service": {
       "implements": [
@@ -33,28 +34,29 @@
   },
   "license": "AGPL-3.0",
   "scripts": {
-    "install": "echo k2s installed",
-    "preuninstall": "k2345.js",
-    "k2345": "k2345.js"
+    "install": "echo k2s installed"
   },
   "keywords": [
     "chatbot",
     "koishi",
     "plugin",
-    "insecure",
-    "2345",
-    "k2345",
-    "koishi-2345",
-    "k2345-service",
+    "k2service",
+    "k2srv-loader",
     "k2s",
     "k2d",
     "service"
   ],
   "peerDependencies": {
+    "@koishijs/plugin-console": "^5.11.0",
     "koishi": "^4.11.9",
-    "@koishijs/plugin-console": "^5.11.0"
+    "schemastery": ">=3.11.0"
   },
   "devDependencies": {
-    "@koishijs/client": "^5.11.9"
+    "@koishijs/client": "^5.12.0",
+    "@koishijs/components": ">=1.3.1"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "stack-trace": "^1.0.0-pre2"
   }
 }

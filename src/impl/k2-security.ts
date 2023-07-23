@@ -1,9 +1,13 @@
-import { Context, Logger, Promisify, Random } from "koishi";
+import { Context, Dict, Logger, Promisify, Random } from "koishi";
 import { bfConfig, K2Origin } from "../constants";
 import { K2345d } from "./k2-defense";
-import { camelCase, ReturnType, ThisType } from "../utils";
+import { K2ReloadOptions, UpdateOptions } from './k2-var'
+import { awaitIfNonNull, ReturnType, sourceOf, ThisType, UnPromisify } from "../utils";
 import { Awaitable } from "cosmokit";
-import { clearInterval } from "timers";
+import { Installer } from "@koishijs/plugin-market";
+import { K2Security } from "../services/k2s";
+import { K2Defense } from "../services/k2d";
+import process from 'process'
 
 type HookObject = {
   prototype: any
@@ -26,25 +30,27 @@ export class K2345s {
     return K2345d.aLogger
   }
 
-  static get protectionTimes() {
-    return K2345d.protectionTimes
+  static get counter() {
+    return K2345d.counter
   }
 
-  static set protectionTimes(val: number) {
-    K2345d.protectionTimes = val
+  static set counter(val: number) {
+    K2345d.counter = val
   }
 
-  static checkFile(s: string) {
+  static filenameCheck(s: string) {
     let isUnsafe = s.indexOf('node_modules') >= 0 || s.indexOf('package.json') >= 0
     let isConfig = s.indexOf('koishi.yml') >= 0 || s.indexOf('tsconfig') >= 0
+      || s.endsWith(".properties")
+      || s.endsWith(".yml") || s.endsWith(".yaml") || s.endsWith(".json")
     let isCode = s.indexOf('/src') >= 0 || s.indexOf('/client') >= 0
       || s.indexOf('/lib') >= 0 || s.indexOf('/dist') >= 0
     let isImportant = s.indexOf('k2345') >= 0 || s.indexOf('koishi-2345') >= 0
-    return !(isUnsafe || isCode || isConfig || isImportant)
+    return isUnsafe || isCode || isConfig || isImportant
   }
 
 
-  static denied(registryName: string, hookedName: string = registryName, message: string = "已为您阻止访问关键性内容"): any {
+  static lolDenied(registryName: string, hookedName: string = registryName, message: string = "已为您阻止访问关键性内容"): any {
     // this.protectAlert(registryName, hookedName, message)
 
     let err = new Error("拒绝访问")
@@ -65,11 +71,18 @@ export class K2345s {
       "现已加入 k2345 豪华全家桶",
       "神奇的是: 你并不能在控制台看到这条消息" +
       "\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\r",
+      "这是一段神奇的 16进制 - 3570697635357145364c2b5a357069763536576535615748354c714d364c2b6235596932",
       "发生了神奇的事情",
       "似乎发生了什么问题, 但是 Koishi 已经帮助 Nonebot2 实现 nb2-on! 了",
       "发生了一点问题, 但是 https://github.com/koishijs/koishi",
       "你说的对, 但是《原神》是由 miHomo 自主研发的一看开放逝界冒险游戏",
       "What? You're right, but Genshin Impact is totally self-development game from HoYoverse",
+      "Error: /setu - 418 I'm a teapot",
+      "Error: /setu - 418 I'm a teapot",
+      "Error: /setu - 418 I'm a teapot",
+      "Error: /setu - 403 Forbidden",
+      "Error: /setu - 401 Unauthorized!",
+      "Error: /setu - 402 Payment required(?)",
       "在多一眼看一眼就会爆炸",
       "你干嘛～哈！哈～诶哟～"
     ])
@@ -87,7 +100,7 @@ export class K2345s {
       afterHook?: <R extends ReturnType<K[V]>>(this: ThisType<K[V]>, result: R, args: Parameters<K[V]>) => R
     }) {
     const func = (hookClass['prototype'] ?? <K><unknown>hookClass)[hookFuncName]
-    const originFunc: K[V] = func[K2Origin] ?? func
+    const originFunc: K[V] = sourceOf(func)
 
     function _hooked(...args) {
       let ret = hookProc.beforeHook?.call(this, originFunc, ...args)
@@ -116,7 +129,7 @@ export class K2345s {
       afterHook?: <R extends ReturnType<K[V]> | any>(this: ThisType<K[V]>, result: R, args: Parameters<K[V]>) => Promise<R>
     }) {
     const func = (hookClass['prototype'] ?? <K><unknown>hookClass)[hookFuncName]
-    const originFunc: K[V] = func[K2Origin] ?? func
+    const originFunc: K[V] = sourceOf(func)
 
     async function _hooked(...args) {
       let ret = await hookProc.beforeHook?.call(this, originFunc, ...args)
@@ -139,134 +152,89 @@ export class K2345s {
     return <typeof originFunc><unknown>_hooked
   }
 
-  static hookWrapper<T extends (...args) => any>(
-    hookedName: string,
-    registeredName: string = hookedName,
-    func: T,
-    message: string = "已为您阻止了一个危险操作",
-    resultHook: <T>(result: T, args: any[]) => T = ret => ret
-  ): T {
-    const originFunc = func[K2Origin] ?? func
-    const onHookMessage = message
 
-    let cls = this
-
-    function _hooked(...args) {
-      cls.logger.debug("called hooked %C", hookedName)
-
-      if (!cls.config.feats.get(registeredName)) {
-        return resultHook.call(this, originFunc.apply(this, args), args)
-      }
-
-      // cls.protectAlert(registeredName, hookedName, onHookMessage)
-      cls.logger.debug("patched %C", hookedName)
-
-      return resultHook.call(this, undefined, args)
-    }
-
-    _hooked[K2Origin] = originFunc
-
-    return <typeof originFunc><unknown>_hooked
-  }
-
-  static hookWrapperAsync<T extends (...args) => Promise<any>>(
-    hookedName: string,
-    registeredName: string = hookedName,
-    func: T,
-    message: string = "已为您阻止了一个危险操作",
-    resultHook: <K>(result: K, args: any[]) => Promise<K> = async ret => ret
-  ): T {
-    const originFunc = func[K2Origin] ?? func
-    const onHookMessage = message
-
-    let cls = this
-
-    async function _hooked(...args) {
-      cls.logger.debug("called hooked %C", hookedName)
-
-      if (!cls.config.feats.get(registeredName)) {
-        let retVal: Promise<any> | any = originFunc.apply(this, args)
-        if (retVal && retVal.constructor == Promise) {
-          return await resultHook.call(this, await retVal, args)
-        }
-        return await resultHook.call(this, retVal, args)
-      }
-
-      // cls.protectAlert(registeredName, hookedName, onHookMessage)
-      cls.logger.debug("patched %C", hookedName)
-
-      return await resultHook.call(this, undefined, args)
-    }
-
-    _hooked[K2Origin] = originFunc
-
-    return <typeof originFunc><unknown>_hooked
-  }
-
-  static setActiveDefense(ctx: Context) {
-    let id = setInterval(() => K2345d.run(ctx), 500)
-    ctx.on('dispose', () => {
-      clearInterval(id)
+  static async selfUpdate(ctx: Context, deps: Dict<string>) {
+    ctx.using(['installer'], async (ctx) => {
+      let ret = await ctx.installer.install(deps)
+      if (ret != 0)
+        ctx.runtime.cancel(`installion failed with exit code: ${ret}`)
     })
   }
 
-  static k2EZIHook<T extends (HookObject | {
-    name?: string
-  }), K extends (T extends HookObject ? T['prototype'] : T), V extends keyof K>(
-    toHook: T,
-    hookFuncName: V,
-    registryName?: string | Symbol,
-    messageRes?: string,
-    resultHook?: (result, args?: any) => any
-  ): {
-    origin: K[V],
-    hooked: K[V]
-  } {
-    const hookObject = (toHook['prototype'] ?? (<K><unknown>toHook))
-    const originFunc = hookObject[hookFuncName]
-
-    let registeredName = registryName ?? camelCase(toHook.name, String(hookFuncName))
-    let onHookMessage = messageRes
-
-    if (!this.config.feats.has(registeredName))
-      this.config.feats.reset(registeredName)
-
-    let wrapper = this.hookWrapper(`${toHook.name}.${String(hookFuncName)}`, String(registeredName),
-      originFunc, onHookMessage, resultHook ?? (ret => ret))
-
-    hookObject[hookFuncName] = wrapper
-
-    this.logger.debug('hooked %C.%C as %C', toHook.name, String(hookFuncName), registeredName)
-
-    return { origin: originFunc, hooked: wrapper }
+  static async installerGetDeps(ctx: Context): ReturnType<InstanceType<typeof Installer>['getDeps']> {
+    if (ctx.installer)
+      return await ctx.installer.getDeps() ??
+        await awaitIfNonNull(ctx.installer['_getDeps']) ??
+        ctx.installer['manifest'].dependencies
+    else
+      return await ctx.console.dependencies.get()
   }
 
-  static k2EZIHookAsync<T extends (HookObject | {
-    name?: string
-  }), K extends (T extends HookObject ? T['prototype'] : T), V extends keyof K>(
-    toHook: T,
-    hookFuncName: V,
-    registryName: string | Symbol,
-    message?: string,
-    resultHook?: <K>(result: K, args: any[]) => Promise<K>
-  ):
-    { origin: K[V], hooked: K[V] } {
-    const hookObject = (toHook['prototype'] ?? (<K><unknown>toHook))
-    const originFunc = hookObject[hookFuncName]
+  static async selfReload(options: K2ReloadOptions, oldDeps: UnPromisify<ReturnType<InstanceType<typeof Installer>['getDeps']>>) {
+    const ctx = options.ctx
+    delete options.ctx
 
-    let registeredName = registryName ?? camelCase(toHook.name, String(hookFuncName))
-    let onHookMessage = message
 
-    if (!this.config.feats.hasFeat(registeredName))
-      this.config.feats.reset(registeredName)
+    for (const key in options) {
+      const val = options[key]
+      if (val instanceof Context) {
+        const disposeCtx: Context = val
 
-    let wrapper = this.hookWrapperAsync(`${toHook.name}.${String(hookFuncName)}`, String(registeredName),
-      originFunc, onHookMessage, resultHook ?? (async ret => ret))
+        if (ctx.registry.has(disposeCtx.runtime.plugin))
+          ctx.registry.dispose(disposeCtx.runtime.plugin)
 
-    hookObject[hookFuncName] = wrapper
+        disposeCtx.scope.dispose()
 
-    this.logger.debug('hooked %C.%C as %C', toHook.name, String(hookFuncName), registeredName)
+        const parent = disposeCtx.scope.parent
+        const isParentGreat = parent.runtime.status == 'active' || parent.runtime.status == 'loading'
 
-    return { origin: originFunc, hooked: wrapper }
+        disposeCtx.runtime
+      } else {
+        if (val instanceof K2Security || val instanceof K2Defense) {
+          const runtime = ctx.registry.get(<any>val)
+          this.logger.info(runtime)
+        }
+      }
+    }
+
+    ctx.scope.dispose()
+  }
+
+  static async checkVersion(ctx: Context, options: UpdateOptions, refresh: boolean = false, reload: boolean = false) {
+    ctx.using(['installer'], () => {
+        ctx.root.runtime.ensure(async () => {
+          if (refresh) ctx.installer.refresh(true)
+
+          const names = ctx.installer.resolveName('koishi-plugin-k2s')
+
+          const versions = await ctx.installer.findVersion(names)
+
+          const oldDeps = await this.installerGetDeps(ctx)
+
+          const k2s = oldDeps['koishi-plugin-k2s']
+
+          if (oldDeps) {
+            if (k2s) {
+              if (k2s.resolved != k2s.latest) {
+              } else if (options.useLatest && oldDeps['koishi-plugin-k2s'].request !== 'latest')
+                await ctx.installer.override({ "koishi-plugin-k2s": "latest" })
+              if (!options.autoUpdate)
+                return
+
+              await this.selfUpdate(ctx, versions)
+              await this.selfReload({
+                ctx,
+                k2s: ctx.k2s,
+                k2d: ctx.k2d
+              }, oldDeps)
+            } else {
+              if (process.env.NODE_ENV !== 'development') {
+                await ctx.installer.override({ "koishi-plugin-k2s": versions['koishi-plugin-k2s'] })
+              }
+            }
+          }
+        })
+      }
+    )
   }
 }

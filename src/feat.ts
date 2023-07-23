@@ -1,14 +1,11 @@
 import { Context } from "koishi";
-import { addPrefix, removePrefix } from "./utils";
-
-
 export class BreakFeaturesConfig {
   context: Context
   feats = new Feat()
 }
 
 export class Feat {
-  ctx?: Context | { config: Object } = { config: {} }
+  config?: object = {}
   #feats: Map<string, boolean> = new Map<string, boolean>()
 
   /* @deprecated use `feat.has` instead */
@@ -20,14 +17,14 @@ export class Feat {
     return this.hasFeat(featName)
   }
 
-  setVal(featName: string | Symbol, val: boolean | null) {
+  setVal(featName: string | symbol, val: boolean | null) {
     this.setFeat(featName, val)
   }
 
-  set(featName: string | Symbol) {
+  set(featName: string | symbol) {
     this.setFeat(featName, true)
   }
-  reset(featName: string | Symbol) {
+  reset(featName: string | symbol) {
     this.setFeat(featName, false)
   }
 
@@ -35,20 +32,16 @@ export class Feat {
     this.setFeat(featName, null)
   }
 
-  get(featName: string, defaultVal: boolean = null) {
-    return this.#feats.get(String(featName)) ?? defaultVal
+  get(featName: string | symbol, defaultVal: boolean = null) {
+    return this.#feats.get(String(featName)) ?? this.config[String(featName)] ?? defaultVal
   }
 
 
-  private setFeat(featName: string | Symbol, enable: boolean | null) {
+  private setFeat(featName: string | symbol, enable: boolean | null) {
     if (typeof featName === 'string') {
-      this.#feats.set(String(removePrefix(featName, 'block')), enable)
-      let setName = String(featName)
-      if (!setName.startsWith('option')) setName = String(addPrefix(featName, 'option'))
-      this.ctx.config[String(setName)] = enable
+      this.#feats.set(featName, enable)
     } else {
       this.#feats.set(String(featName), enable)
-      this.ctx.config[String(featName)] = enable
     }
   }
 

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
-import zhCN from "./locales/zh-CN.yml";
-import enUS from "./locales/en-US.yml";
+import { zhCN, enUS } from "./locales";
 
 const { t, setLocaleMessage } = useI18n({
   messages: {

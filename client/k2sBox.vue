@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import K2sNotice from "./k2sNotice.vue";
-import K2sHistory from "./k2sHistory.vue";
 
 import type {} from '../shared'
 
@@ -8,15 +7,14 @@ import { watchEffect } from 'vue'
 import { Context, message, receive, root, store } from '@koishijs/client'
 
 import { useI18n } from "vue-i18n";
-import zhCN from "./locales/zh-CN.yml";
-import enUS from "./locales/en-US.yml";
+import { zhCN, enUS } from "./locales";
 
 receive("k2d/rm-config", (data: { name: string }) => {
   delete store.packages[data.name]
 })
 
-if (!(<Context & {k2s?: any}>root).k2s) {
-  (<Context & {k2s?: any}>root).k2s = { injected: false }
+if (!(<Context & { k2s?: any }>root).k2s) {
+  (<Context & { k2s?: any }>root).k2s = { injected: false }
 }
 
 const { t, setLocaleMessage } = useI18n({
@@ -36,12 +34,12 @@ if (import.meta.hot) {
 }
 
 watchEffect(() => {
-  if ((<Context & {k2s: any}>root).k2s && !(<Context & {k2s: any}>root).k2s.injected) {
+  if ((<Context & { k2s: any }>root).k2s && !(<Context & { k2s: any }>root).k2s.injected) {
     setTimeout(() => {
       message.info({ message: t('messages.serviceActiveNotice') })
     });
 
-    (<Context & {k2s: any}>root).k2s.injected = true
+    (<Context & { k2s: any }>root).k2s.injected = true
   }
 }, { "flush": 'post' })
 

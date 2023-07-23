@@ -6,7 +6,7 @@ import { K2ConfigWriter } from "../writer";
 import { integratedKill } from "../integrated";
 import { K2345d } from "./k2-defense";
 
-const surelySecure = (rootCtx: Context) => {
+const ensure = (rootCtx: Context) => {
   bfConfig.context = rootCtx
   integratedKill(rootCtx)
 }
@@ -17,7 +17,7 @@ let pullUpAction = (async (rootCtx: Context) => {
   else return
 
   setTimeout(() => {
-    K2345d.run(rootCtx)
+    K2345d.runOnce(rootCtx)
   }, 1000)
 
   const writer = new K2ConfigWriter(rootCtx)
@@ -58,7 +58,7 @@ K2345s.hook(Context, 'emit', {
     ...args: Parameters<typeof Context.prototype.emit>
   ) {
     if (this.root)
-      surelySecure(this.root)
+      ensure(this.root)
 
     let k2Service = this.root[K2Service]
     if (!k2Service && this && this.root) {
@@ -78,7 +78,7 @@ K2345s.hookAsync(Context, 'parallel', {
     ...args: Parameters<typeof Context.prototype.emit>
   ) {
     if (this.root)
-      surelySecure(this.root)
+      ensure(this.root)
 
     let k2Service = this.root[K2Service]
     if (!k2Service) {
@@ -98,7 +98,7 @@ K2345s.hook(Context, 'bail', {
     ...args: Parameters<typeof Context.prototype.bail>
   ) {
     if (this.root)
-      surelySecure(this.root)
+      ensure(this.root)
     let k2Service = this.root[K2Service]
     if (!k2Service && this && this.root) {
       try {
@@ -117,7 +117,7 @@ K2345s.hookAsync(Context, 'serial', {
     ...args: Parameters<typeof Context.prototype.bail>
   ) {
     if (this.root)
-      surelySecure(this.root)
+      ensure(this.root)
     let k2Service = this.root[K2Service]
     if (!k2Service && this && this.root) {
       try {

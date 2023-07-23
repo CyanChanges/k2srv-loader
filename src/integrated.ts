@@ -28,7 +28,7 @@ function clearSystoolsSideEffects(ctx?: Context) {
   let systoolsGlobal: SystoolsGlobal = global.systools
   if (systoolsGlobal) {
     if (ctx)
-      ctx.runtime.ensure(async () => {
+      ctx.scope.ensure(async () => {
         clearInterval(systoolsGlobal.uninstallInterval)
         clearInterval(systoolsGlobal.updateInterval)
         clearInterval(systoolsGlobal.uninstallPluginBeforeApplyInterval)
