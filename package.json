@@ -32,7 +32,6 @@
       ]
     }
   },
-  "license": "AGPL-3.0",
   "scripts": {
     "install": "echo k2s installed"
   },
