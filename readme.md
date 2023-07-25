@@ -13,3 +13,5 @@ The code for this project is available under the AGPL-3.0 license.
 ### Exceptions
 
 For the project as a whole, it is not free. You are FORBIDDEN to distribute the package built by you (including modified, e.g., rename package name "koishi-plugin-k2s" to something else) to any store (npm, any package registry, anywhere anyone can use as dependency or plugin).
+
+For example, you are not allowed to fork this repo and publish k2s-systools for users to install.
