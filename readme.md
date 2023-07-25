@@ -6,3 +6,5 @@
 [Learning more](https://k.ilharp.cc/3389/3)
 
 提供 k2s 相关服务
+
+Copyright Cyan Changes 2023 All rights reserved.
