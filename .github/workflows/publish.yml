@@ -13,6 +13,6 @@ jobs:
       - uses: CyanChanges/koishi-publish@main
         name: Publish
         with:
-          npm-token: ${{ secrets.NPM_TOKEN }}
+          token: ${{ secrets.NPM_TOKEN }}
 
 
