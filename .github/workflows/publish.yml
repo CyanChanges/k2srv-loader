@@ -4,14 +4,13 @@ on:
   workflow-dispatch:
 
 jobs:
- 	 	publish:
-      runs-on: ubuntu-latest
-			steps:
-    	- uses: actions/checkout@v3
-
-    	- name: Publish
-      	uses: CyanChanges/koishi-publish@main
-      	with:
-          npm-token: ${{ secrets.NPM_TOKEN }}
+ 	publish:
+    runs-on: ubuntu-latest
+		steps:
+  		- uses: actions/checkout@v3
+  		- name: Publish
+    		uses: CyanChanges/koishi-publish@main
+   		 	with:
+      	  npm-token: ${{ secrets.NPM_TOKEN }}
 
 
