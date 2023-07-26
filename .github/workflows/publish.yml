@@ -4,6 +4,10 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      otp-code:
+        description: '2FA Authenticate Code'
+        required: true
     
 jobs:
   publish:
@@ -14,5 +18,6 @@ jobs:
         name: Publish
         with:
           token: ${{ secrets.NPM_TOKEN }}
+          otp-code: ${{ inputs.otp-code }}
 
 
