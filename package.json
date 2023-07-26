@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-k2s",
   "description": "安装前请先阅读并同意 https://k.ilharp.cc/3389/3 否则造成任何后果与本插件无关",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
