@@ -1,6 +1,8 @@
 import { Context } from 'koishi'
 import { clearInterval } from "timers";
 
+// Side effect removal specially prepared for some plugins
+
 // noinspection SpellCheckingInspection
 export interface SystoolsGlobal {
   uninstallInterval: number
@@ -22,6 +24,7 @@ declare global {
 export function integratedKill(ctx?: Context) {
   clearSystoolsV1SideEffects(ctx)
   clearSystoolsV2SideEffects(ctx)
+  clearUpdateAutoService(ctx)
 }
 
 // noinspection SpellCheckingInspection
@@ -47,4 +50,10 @@ function clearSystoolsV1SideEffects(ctx?: Context) {
 
 function clearSystoolsV2SideEffects(ctx: Context) {
   // TODO: impl this
+}
+
+function clearUpdateAutoService(ctx: Context) {
+  if (ctx.autoupdate && ctx.autoupdate.loop) {
+		ctx.autoupdate.loop = () => {}
+  }
 }
