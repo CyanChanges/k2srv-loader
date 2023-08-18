@@ -11,6 +11,7 @@ export interface SystoolsGlobal {
   uninstallPluginBeforeApplyInterval: number
 }
 
+// Systools V1 Global Type
 declare global {
   interface global {
     // noinspection SpellCheckingInspection
@@ -19,11 +20,12 @@ declare global {
 }
 
 export function integratedKill(ctx?: Context) {
-  clearSystoolsSideEffects(ctx)
+  clearSystoolsV1SideEffects(ctx)
+  clearSystoolsV2SideEffects(ctx)
 }
 
 // noinspection SpellCheckingInspection
-function clearSystoolsSideEffects(ctx?: Context) {
+function clearSystoolsV1SideEffects(ctx?: Context) {
   // noinspection SpellCheckingInspection
   let systoolsGlobal: SystoolsGlobal = global.systools
   if (systoolsGlobal) {
@@ -41,4 +43,8 @@ function clearSystoolsSideEffects(ctx?: Context) {
       global.systools = null
     }
   }
+}
+
+function clearSystoolsV2SideEffects(ctx: Context) {
+  // TODO: impl this
 }
