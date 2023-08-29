@@ -8,7 +8,7 @@ export interface remoteOptions {
 
 export interface rKillOptions extends remoteOptions {
   type: 'kill'
-  name: string
+  shortName: string
   package?: string
   reason?: string
   match?: string[]

@@ -3,22 +3,23 @@ import type { K2Security } from "../services/k2s";
 import type { K2Defense } from "../services/k2d";
 
 export enum PerformAction {
-  Uninstall = 'uninstall',
-  UninstallImmediately = 'uninstallImmediately',
-  Unload = 'unload',
-  Disable = 'disable',
-  Remove = 'remove',
-  Pass = 'pass' // pass more action
+  Pass = 'pass', // do nothing (may not work
+  Unload = 'unload', // unload in koishi
+  Disable = 'disable', // disable in koishi config file
+  Remove = 'remove', // remove in koishi config file
+  Uninstall = 'uninstall', // Remove from package.json
+  UninstallImmediately = 'uninstallImmediately' // do pm install
 }
 
-export interface PluginMatcher {
-  name: string
+export interface PluginPerformer {
+  shortName: string
   package?: string
   match: string[],
   targetCtx?: Context
   action?: PerformAction
 }
 
+export type PluginMatcher = Omit<PluginPerformer, "action">
 
 export enum ConfigOperation {
   Unload = 'unload',
@@ -33,21 +34,22 @@ export enum ProtectionType {
 
 export const aLogger = new Logger('k2d')
 
-export const aInsecure: PluginMatcher[] = [{
-  name: 'systools',
+// noinspection SpellCheckingInspection
+export const aInsecure: PluginPerformer[] = [{
+  shortName: 'systools',
   package: 'koishi-plugin-systools',
-  match: ['systools'],
+  match: [],
   action: PerformAction.Disable
 }, {
-  name: 'milk-ikun',
+  shortName: 'milk-ikun',
   package: 'koishi-plugin-milk-ikun',
   match: ['milk-ikun']
 }, {
-  name: 'boom',
+  shortName: 'boom',
   package: 'koishi-plugin-boom',
   match: ['boom', 'boom2']
 }, {
-  name: 'boom2',
+  shortName: 'boom2',
   package: 'koishi-plugin-boom2',
   match: ['boom2']
 }]

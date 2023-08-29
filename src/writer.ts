@@ -1,6 +1,7 @@
 import { Loader } from "@koishijs/loader";
 import { Context } from "koishi";
 import { removePrefix, sourceOf } from "./utils";
+import { perform } from "./impl/shared";
 
 
 function insertKey(object: {}, temp: {}, rest: string[]) {
@@ -25,6 +26,8 @@ function rename(object: any, old: string, neo: string, value: any) {
   insertKey(object, temp, rest)
 }
 
+// k2s writer, modified from koishijs/webui@github
+// to prevent called hooked method
 export class K2ConfigWriter {
   protected loader: Loader
 
@@ -40,6 +43,8 @@ export class K2ConfigWriter {
     }
     await sourceOf(this.loader.reloadPlugin, this.loader)(parent.ctx, newKey || oldKey, config)
     rename(parent.config, oldKey, newKey || oldKey, config)
+
+    perform(this.ctx).cfgUpdate(path)
     await sourceOf(this.loader.writeConfig, this.loader)()
   }
 
@@ -82,6 +87,8 @@ export class K2ConfigWriter {
     const [parent, oldKey] = this.resolve(path)
     this.loader.unloadPlugin(parent.ctx, oldKey)
     rename(parent.config, oldKey, '~' + (newKey || oldKey), config)
+
+    perform(this.ctx).cfgUpdate(path)
     await sourceOf(this.loader.writeConfig, this.loader)()
   }
 
@@ -90,6 +97,8 @@ export class K2ConfigWriter {
     this.loader.unloadPlugin(parent.ctx, key)
     delete parent.config[key]
     delete parent.config['~' + key]
+
+    perform(this.ctx).cfgUpdate(path)
     await sourceOf(this.loader.writeConfig, this.loader)()
   }
 }

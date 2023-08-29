@@ -76,15 +76,15 @@ export class K2Security<T extends Config = Config> extends Service {
 
         caller.on('dispose', () => {
           caller.runtime.restart()
-          K2345s.lolDenied('unloadProtect', "unload", "已为您阻止意外操作")
+          K2345s.denied(caller)
         })
 
         const deleter = caller.registry.delete
         caller.registry.delete = function _wrapper(plugin) {
           if (plugin === caller.runtime.plugin) {
-            caller.logger('app').error('unable to unload %c due to access denied', caller.runtime.name)
-            K2345s.lolDenied('unloadProtect', "unload", "已为您阻止意外操作")
-            return false // ur not able to delete it !!!!!
+            caller.logger('app').error('unable to unload %c', caller.runtime.name)
+            K2345s.denied(caller)
+            return false
           }
           return deleter.call(this, plugin)
         }

@@ -1,6 +1,6 @@
-import { Context, EffectScope } from "koishi";
+import { Context } from "koishi";
 import { rKillOptions } from "../../shared";
-import { bfConfig, K2Service } from "../constants";
+import { bfConfig } from "../constants";
 import { integratedKill } from "../integrated";
 import { K2ConfigWriter } from "../writer";
 import * as defense from "./k2-var";
@@ -8,7 +8,7 @@ import {
   aLogger as al,
   ConfigOperation,
   PerformAction,
-  PluginMatcher
+  PluginMatcher, PluginPerformer
 } from "./k2-var";
 import { debounce } from "lodash";
 import { get as getTrace } from 'stack-trace'
@@ -16,12 +16,16 @@ import type {} from '@koishijs/plugin-market'
 import { readFileSync } from "fs";
 import { K2345s } from "./k2-security";
 import { Config } from "../shared";
+import { removePrefix } from "../utils";
+import { perform } from "./shared";
+import which from 'which-pm-runs'
+
+
 
 export * from './k2-var'
 
 // noinspection SpellCheckingInspection
 export class K2345d {
-  static counter = 0
   static _aLogger = al
   static _writer: K2ConfigWriter
   static defaultsOptions = {
@@ -37,36 +41,22 @@ export class K2345d {
     return this._writer
   }
 
-  static get aLogger() {
-    return this._aLogger ?? bfConfig.context.logger('k2d')
-  }
-
-  static perform = class PerformClass {
-    static kill(scopeKilled: EffectScope) {
-
-    }
-
-    static cfgUpdate(configPath: string) {
-
-    }
-
-    static uninstall(name: string) {
-
-    }
-
-    static ctxCheckFailed(ctxFailed: Context) {
-
-    }
-
-    static modulePathCheckFailed(reason: any) {
-
-    }
-  }
-
   static ctxCheck(ctx2check: Context) {
     return defense.aInsecure.find((matcher) => {
-      const isTarget = ctx2check.runtime.name.endsWith(matcher.name) || matcher.name.endsWith(ctx2check.runtime.name)
-      const isMatch = matcher.match && matcher.match.some((v) => String(ctx2check.plugin).indexOf(v) !== -1)
+      let isTarget = matcher.shortName && ctx2check.runtime.name == matcher.shortName
+
+      if (matcher.shortName) {
+        let ctx1 = ctx2check
+
+        while (ctx1.scope.parent == ctx1 || ctx1.scope.parent == ctx1.root) {
+          if (ctx2check.runtime.name == matcher.shortName) {
+            isTarget = true
+          }
+        }
+      }
+
+      const isMatch = matcher.match.length != 0 && matcher.match.some((v) => String(ctx2check.plugin).indexOf(v) !== -1)
+
       return isTarget || isMatch
     })
   }
@@ -97,9 +87,9 @@ export class K2345d {
     return false
   }
 
-  static performMatcher(ctx: Context, matcher: PluginMatcher) {
+  static performMatcher(ctx: Context, matcher: PluginPerformer) {
     const options = <rKillOptions><unknown>Object.assign(this.defaultsOptions, matcher)
-    options.name ??= matcher.package
+    options.shortName ??= removePrefix(matcher.package, 'koishi-plugin-')
 
     K2345d.dRemoteKill(ctx, options)
 
@@ -108,7 +98,7 @@ export class K2345d {
         break
       case PerformAction.UninstallImmediately:
       case PerformAction.Uninstall:
-        this.dConfigAction(ctx, matcher.name, ConfigOperation.Remove)
+        this.dConfigAction(ctx, matcher.shortName, ConfigOperation.Remove)
         this.dUninstall(
           ctx,
           matcher.package,
@@ -116,10 +106,10 @@ export class K2345d {
         )
         break
       case PerformAction.Disable:
-        this.dConfigAction(ctx, matcher.name, ConfigOperation.Unload)
+        this.dConfigAction(ctx, matcher.shortName, ConfigOperation.Unload)
         break
       case PerformAction.Remove:
-        this.dConfigAction(ctx, matcher.name, ConfigOperation.Remove)
+        this.dConfigAction(ctx, matcher.shortName, ConfigOperation.Remove)
         break
       case PerformAction.Pass:
         break
@@ -159,12 +149,12 @@ export class K2345d {
 
     if (!options.targetCtx)
       ctx.registry.forEach((value, key, map) => {
-        const isTarget = value.name.endsWith(options.name) || options.name.endsWith(value.name)
+        const isTarget = value.name.endsWith(options.shortName) || options.shortName.endsWith(value.name)
         const isMatch = options.match && (options.match.some((v) => (String(key).indexOf(v) !== -1 || v.indexOf(String(key)) !== -1)))
         if (isTarget || isMatch) {
           const matchedPlugin = value
 
-          options.name = matchedPlugin.name
+          options.shortName = matchedPlugin.name
 
           ctx.scope.ensure(() => {
             matchedPlugin.uid = null
@@ -187,7 +177,7 @@ export class K2345d {
 
           ctx.scope.ensure(async () => {
             map.delete(key)
-            this.perform.kill(value)
+            perform(ctx).kill(value)
             ctx.logger('app').success('plugin %c has been terminated', value.name)
             al.info('plugin %c terminated, reason: %C', value.name, reason)
           })
@@ -217,17 +207,16 @@ export class K2345d {
 
       ctx.scope.ensure(async () => {
         ctx.registry.delete(ctx.runtime.plugin)
-        this.perform.kill(options.targetCtx.scope)
+        perform(ctx).kill(options.targetCtx.scope)
         ctx.logger('app').success('plugin %c has been terminated', options.targetCtx.runtime.name)
         al.info('plugin %c terminated, reason: %C', options.targetCtx.runtime.name, reason)
       })
     }
 
     if (found)
-      if (ctx.console)
-        (async () =>
-            ctx.console.broadcast("k2d/rm-config", { name: options.package ?? options.name }, { immediate: true })
-        )().then()
+      ctx.using(['console'], async () =>
+        ctx.console.broadcast("k2d/rm-config", { name: options.package ?? options.shortName }, { immediate: true })
+      )
 
 
     return found
@@ -274,11 +263,18 @@ export class K2345d {
       ctx.installer.refresh(true)
       if (!immediately) return
       const args: string[] = []
-      if (ctx.installer['agent'] !== 'yarn') args.push('install')
+
+      const agent = ctx.installer['agent'] ?? (which() ?? { name: 'npm' }).name
+
+      // execute agent instead of using ctx.installer.install
+      // to prevent install() call ctx.loader.fullReload()
+
+      if (agent !== 'yarn') args.push('install')
       args.push('--registry', ctx.installer.endpoint)
-      let code = await ctx.installer.exec(ctx.installer['agent'], args)
+      let code = await ctx.installer.exec(agent, args)
+
       if (code !== 0) {
-        al.warn('failed to uninstall %c, agent exit with %s', packageName, code)
+        al.warn(`failed to uninstall %c, '${agent}' exit with %s`, packageName, code)
       }
     })
   }
