@@ -38,6 +38,7 @@ export class K2Defense<T extends Config = Config> extends Service {
     })
 
     this.ctx.using(['console'], (ctx) => {
+      //@ts-ignore
       ctx.console.addListener("k2d/kill", (options: rKillOptions) => {
         return this.dKill(this.ctx, options)
       })

@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-k2s",
   "description": "安装前请先阅读并同意 https://k.ilharp.cc/3389/3 否则造成任何后果与本插件无关",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -36,7 +36,6 @@
     "install": "echo k2s installed"
   },
   "keywords": [
-    "chatbot",
     "koishi",
     "plugin",
     "k2service",
@@ -46,18 +45,19 @@
     "service"
   ],
   "peerDependencies": {
-    "@koishijs/plugin-console": "^5.11.0",
-    "koishi": "^4.13.9",
+    "@koishijs/plugin-console": "^5.16.1",
+    "koishi": "^4.15.1",
     "schemastery": ">=3.11.0"
   },
   "devDependencies": {
-    "@koishijs/client": "^5.12.0",
+    "@koishijs/client": "^5.16.1",
     "@koishijs/components": ">=1.3.1",
     "@types/stack-trace": "^0.0.30",
     "@types/which-pm-runs": "^1.0.0"
   },
   "dependencies": {
     "lodash": "^4.17.21",
+    "koishi-plugin-keine": "latest",
     "stack-trace": "^1.0.0-pre2"
   }
 }

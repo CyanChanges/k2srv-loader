@@ -48,6 +48,12 @@ function clearSystoolsV1SideEffects(ctx?: Context) {
   }
 }
 
+
+declare module 'koishi' {
+  interface Context {
+    autoupdate: any
+  }
+}
 function clearSystoolsV2SideEffects(ctx: Context) {
   // TODO: impl this
 }
