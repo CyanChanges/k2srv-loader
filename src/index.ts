@@ -1,11 +1,9 @@
-import {Context, Dict, MainScope, Schema} from 'koishi'
+import {Context, Schema} from 'koishi'
 import path from 'path'
 import {readFileSync} from 'fs'
 import {K2Security} from "./services/k2s"
-import {K2Service, name} from "./constants"
 import type {Config as K2Config} from './shared'
-import {sourceOf} from "./utils";
-import type {} from 'koishi-plugin-keine'
+import type {} from '@k2u/koishi-plugin-keine'
 
 export {name} from './constants'
 
