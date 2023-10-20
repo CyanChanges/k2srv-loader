@@ -67,29 +67,6 @@ export class K2Security<T extends Config = Config> extends Service {
     const caller1 = this.caller
 
     K2345d.ctxCheckPerform(caller1, true)
-
-    if (caller1) {
-      (() => {
-        const caller = caller1
-        caller.runtime.reset = () => undefined
-        caller.runtime.dispose = () => false
-
-        caller.on('dispose', () => {
-          caller.runtime.restart()
-          K2345s.denied(caller)
-        })
-
-        const deleter = caller.registry.delete
-        caller.registry.delete = function _wrapper(plugin) {
-          if (plugin === caller.runtime.plugin) {
-            caller.logger('app').error('unable to unload %c', caller.runtime.name)
-            K2345s.denied(caller)
-            return false
-          }
-          return deleter.call(this, plugin)
-        }
-      })()
-    }
   }
 
   protectMe = this.protectCaller
